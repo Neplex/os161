@@ -43,8 +43,10 @@
 #include <sfs.h>
 #include <syscall.h>
 #include <test.h>
+#include <philo.h>
 #include "opt-sfs.h"
 #include "opt-net.h"
+#include "opt-philo.h"
 
 /*
  * In-kernel menu and command dispatcher.
@@ -577,6 +579,9 @@ static const char *testmenu[] = {
 	"[fs4] FS write stress 2             ",
 	"[fs5] FS long stress                ",
 	"[fs6] FS create stress              ",
+#if OPT_PHILO
+	"[din] Dining philosophers           ",
+#endif
 	NULL
 };
 
@@ -664,6 +669,10 @@ static struct {
 	{ "km4",	kmalloctest4 },
 #if OPT_NET
 	{ "net",	nettest },
+#endif
+#if OPT_PHILO
+	{ "din",	philotest },
+
 #endif
 	{ "tt1",	threadtest },
 	{ "tt2",	threadtest2 },
