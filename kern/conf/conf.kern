@@ -442,6 +442,7 @@ file		test/kmalloctest.c
 file		test/fstest.c
 optfile net	test/nettest.c
 
-
 defoption philo
 optfile   philo synchprob/philo.c
+
+file    fs/ul/sc.c

@@ -178,9 +178,6 @@ lock_destroy(struct lock *lock)
 
         spinlock_cleanup(&lock->lk_lock);
       	wchan_destroy(lock->lk_wchan);
-              kfree(lock->lk_name);
-              kfree(lock);
-
         kfree(lock->lk_name);
         kfree(lock);
 }

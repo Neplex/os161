@@ -39,6 +39,8 @@
 #include <array.h>
 #include <spinlock.h>
 #include <threadlist.h>
+#include <syscall.h>
+#include <limits.h>
 
 struct cpu;
 
@@ -105,6 +107,7 @@ struct thread {
 	/*
 	 * Public fields
 	 */
+  struct fd* files[OPEN_MAX];
 
 	/* add more here as needed */
 };

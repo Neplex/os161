@@ -32,6 +32,7 @@
 
 
 #include <cdefs.h> /* for __DEAD */
+#include <vnode.h>
 struct trapframe; /* from <machine/trapframe.h> */
 
 /*
@@ -58,5 +59,27 @@ __DEAD void enter_new_process(int argc, userptr_t argv, userptr_t env,
 
 int sys_reboot(int code);
 int sys___time(userptr_t user_seconds, userptr_t user_nanoseconds);
+
+// FILE SYSCALL
+#define CONSOLE_NAME "con:"
+
+struct fd {
+  char* fd_name;       // Name
+  int fd_flags;        // Flags (read/write)
+  off_t fd_offset;     // Content pointer
+  struct vnode* fd_vn; // VFS node
+};
+
+int init_std_file(struct fd* files[], int index);
+int init_file_array(struct fd* files[]);
+
+int sys___getcwd(int* r, userptr_t buf, size_t size);
+int sys_chdir(userptr_t path);
+int sys_open(int* r, userptr_t name, int flags, mode_t mode);
+int sys_close(int fd);
+int sys_read(int* r, int fd, userptr_t buf, size_t size);
+int sys_write(int* r, int fd, userptr_t buf, size_t size);
+int sys_lseek(int* r, int fd, off_t offset);
+int sys_dup2(int* r, int oldfd, int newfd);
 
 #endif /* _SYSCALL_H_ */
