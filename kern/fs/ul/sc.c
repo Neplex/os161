@@ -131,28 +131,64 @@ int sys_close(int fd)
 
 int sys_read(int* r, int fd, userptr_t buf, size_t size)
 {
+  int result;
+  struct iovec v;
+  struct uio u;
+
   // Valid file descriptor
   if (fd<0 || fd>=OPEN_MAX || curthread->files[fd]==NULL) { return 1; }
 
-  *r=0;
-  fd=(int)fd;
-  buf=(userptr_t)buf;
-  size=(size_t)size;
+  v.iov_ubase = buf;
+  v.iov_len = size;
+  u.uio_iov = &v;
+  u.uio_iovcnt = 1;
+  u.uio_offset = curthread->files[fd]->fd_offset;
+  u.uio_resid = size;
+  u.uio_segflg = UIO_USERSPACE;
+  u.uio_space = curthread->t_proc->p_addrspace;
+  u.uio_rw = UIO_READ;
 
-  return 0;
+  result = VOP_READ(curthread->files[fd]->fd_vn, &u);
+
+  if (result) {
+    *r = -1;
+  } else {
+    *r = u.uio_offset;
+    curthread->files[fd]->fd_offset += u.uio_offset;
+  }
+
+  return result;
 }
 
 int sys_write(int* r, int fd, userptr_t buf, size_t size)
 {
+  int result;
+  struct iovec v;
+  struct uio u;
+
   // Valid file descriptor
   if (fd<0 || fd>=OPEN_MAX || curthread->files[fd]==NULL) { return 1; }
 
-  *r=0;
-  fd=(int)fd;
-  buf=(userptr_t)buf;
-  size=(size_t)size;
+  v.iov_ubase = buf;
+  v.iov_len = size;
+  u.uio_iov = &v;
+  u.uio_iovcnt = 1;
+  u.uio_offset = curthread->files[fd]->fd_offset;
+  u.uio_resid = size;
+  u.uio_segflg = UIO_USERSPACE;
+  u.uio_space = curthread->t_proc->p_addrspace;
+  u.uio_rw = UIO_WRITE;
 
-  return 0;
+  result = VOP_WRITE(curthread->files[fd]->fd_vn, &u);
+
+  if (result) {
+    *r = -1;
+  } else {
+    *r = u.uio_offset;
+    curthread->files[fd]->fd_offset += u.uio_offset;
+  }
+
+  return result;
 }
 
 int sys_lseek(int* r, int fd, off_t offset)
