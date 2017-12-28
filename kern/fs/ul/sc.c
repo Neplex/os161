@@ -94,7 +94,7 @@ int sys_open(int* r, userptr_t name, int flags, mode_t mode)
 
   // Get first free file descriptor
   while (curthread->files[i] != NULL) { i++; }
-  if (i >= OPEN_MAX) { return 1; }
+  if (i >= OPEN_MAX) { return EMFILE; }
 
   size_t count;
   char kname[NAME_MAX];
@@ -120,7 +120,7 @@ int sys_open(int* r, userptr_t name, int flags, mode_t mode)
 int sys_close(int fd)
 {
   // Valid file descriptor
-  if (fd<0 || fd>=OPEN_MAX || curthread->files[fd]==NULL) { return 1; }
+  if (fd<0 || fd>=OPEN_MAX || curthread->files[fd]==NULL) { return EBADF; }
 
   vfs_close(curthread->files[fd]->fd_vn);
   kfree(curthread->files[fd]);
@@ -136,7 +136,7 @@ int sys_read(int* r, int fd, userptr_t buf, size_t size)
   struct uio u;
 
   // Valid file descriptor
-  if (fd<0 || fd>=OPEN_MAX || curthread->files[fd]==NULL) { return 1; }
+  if (fd<0 || fd>=OPEN_MAX || curthread->files[fd]==NULL) { return EBADF; }
 
   v.iov_ubase = buf;
   v.iov_len = size;
@@ -162,12 +162,16 @@ int sys_read(int* r, int fd, userptr_t buf, size_t size)
 
 int sys_write(int* r, int fd, userptr_t buf, size_t size)
 {
-  int result;
+  int result, flags;
   struct iovec v;
   struct uio u;
 
   // Valid file descriptor
-  if (fd<0 || fd>=OPEN_MAX || curthread->files[fd]==NULL) { return 1; }
+  if (fd<0 || fd>=OPEN_MAX || curthread->files[fd]==NULL) { return EBADF; }
+
+  // Read only
+  flags = curthread->files[fd]->fd_flags;
+  if (flags != O_RDWR && flags != O_WRONLY) { return EROFS; }
 
   v.iov_ubase = buf;
   v.iov_len = size;
@@ -194,7 +198,7 @@ int sys_write(int* r, int fd, userptr_t buf, size_t size)
 int sys_lseek(int* r, int fd, off_t offset)
 {
   // Valid file descriptor
-  if (fd<0 || fd>=OPEN_MAX || curthread->files[fd]==NULL) { return 1; }
+  if (fd<0 || fd>=OPEN_MAX || curthread->files[fd]==NULL) { return EBADF; }
 
   if (offset < 0) { offset = 0; }
   // TODO: if offset upper than file length set file length
@@ -208,8 +212,8 @@ int sys_dup2(int* r, int oldfd, int newfd)
   int result;
 
   // Valid file descriptor
-  if (oldfd<0 || oldfd>=OPEN_MAX || curthread->files[oldfd]==NULL) { return 1; }
-  if (newfd<0 || newfd>=OPEN_MAX) { return 1; }
+  if (oldfd<0 || oldfd>=OPEN_MAX || curthread->files[oldfd]==NULL) { return EBADF; }
+  if (newfd<0 || newfd>=OPEN_MAX) { return EBADF; }
 
   // If it same do nothing
   if (oldfd != newfd)
