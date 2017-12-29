@@ -6,6 +6,8 @@
 #include <vnode.h>
 #include <syscall.h>
 #include <limits.h>
+#include <kern/fcntl.h>
+#include <kern/errno.h>
 #include <copyinout.h>
 
 /* Create std file (stdin, stdout, stderr) */

@@ -445,4 +445,5 @@ optfile net	test/nettest.c
 defoption philo
 optfile   philo synchprob/philo.c
 
-file    fs/ul/sc.c
+file    syscall/file_syscalls.c
+file    syscall/proc_syscalls.c

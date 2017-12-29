@@ -82,4 +82,11 @@ int sys_write(int* r, int fd, userptr_t buf, size_t size);
 int sys_lseek(int* r, int fd, off_t offset);
 int sys_dup2(int* r, int oldfd, int newfd);
 
+// PROC SYSCALL
+int sys_getpid(pid_t *r);
+int sys__exit(int exit_code);
+int sys_fork(pid_t *r, struct trapframe *tf);
+int sys_waitpid(pid_t *r, pid_t pid, userptr_t status, int options);
+int sys_execv(int* r, userptr_t name, userptr_t args[]);
+
 #endif /* _SYSCALL_H_ */

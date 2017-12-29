@@ -108,6 +108,7 @@ syscall(struct trapframe *tf)
       err = sys___time((userptr_t)tf->tf_a0,(userptr_t)tf->tf_a1);
       break;
 
+    // FILE //
     case SYS___getcwd:
       err = sys___getcwd(&retval,(userptr_t)tf->tf_a0,tf->tf_a1);
       break;
@@ -138,6 +139,27 @@ syscall(struct trapframe *tf)
 
     case SYS_dup2:
       err = sys_dup2(&retval,tf->tf_a0,tf->tf_a1);
+      break;
+
+    // PROC //
+    case SYS_getpid:
+      err = sys_getpid(&retval);
+      break;
+
+    case SYS__exit:
+      err = sys__exit(tf->tf_a0);
+      break;
+
+    case SYS_fork:
+      err = sys_fork(&retval, tf);
+      break;
+
+    case SYS_waitpid:
+      err = sys_waitpid(&retval,tf->tf_a0,(userptr_t)tf->tf_a1,tf->tf_a2);
+      break;
+
+    case SYS_execv:
+      err = sys_execv(&retval,(userptr_t)tf->tf_a0,(userptr_t*)tf->tf_a1);
       break;
 
 	    /* Add stuff here */
