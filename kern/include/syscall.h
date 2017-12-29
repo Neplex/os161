@@ -33,6 +33,7 @@
 
 #include <cdefs.h> /* for __DEAD */
 #include <vnode.h>
+#include <limits.h>
 struct trapframe; /* from <machine/trapframe.h> */
 
 /*
@@ -83,6 +84,19 @@ int sys_lseek(int* r, int fd, off_t offset);
 int sys_dup2(int* r, int oldfd, int newfd);
 
 // PROC SYSCALL
+struct process {
+  pid_t p_parent;
+  int p_ecode;
+  struct thread* p_thread;
+};
+
+struct process* process[PID_MAX];
+struct lock* process_lock; // Init in thread bootstrap
+
+int init_process(struct thread* t); // Init PID (call in thread_create)
+void delete_process(pid_t pid); // Delete PID (call in waitpid)
+void enter_process(void* tf, unsigned long parent);
+
 int sys_getpid(pid_t *r);
 int sys__exit(int exit_code);
 int sys_fork(pid_t *r, struct trapframe *tf);

@@ -108,6 +108,7 @@ struct thread {
 	 * Public fields
 	 */
   struct fd* files[OPEN_MAX];
+  pid_t t_pid;
 
 	/* add more here as needed */
 };

@@ -149,6 +149,13 @@ thread_create(const char *name)
 
 	/* If you add to struct thread, be sure to initialize here */
 
+  // Create PID
+  int r = init_process(thread);
+  if (r == EMPROC) { // No more PID available, delete thread
+    kfree(thread);
+    return NULL;
+  }
+
 	return thread;
 }
 
@@ -372,6 +379,10 @@ void
 thread_bootstrap(void)
 {
 	cpuarray_init(&allcpus);
+
+  // Init process array
+	for(int i=0; i<PID_MAX; i++) { process[i]=NULL; }
+	process_lock = lock_create("process_lock");
 
 	/*
 	 * Create the cpu structure for the bootup CPU, the one we're

@@ -5,7 +5,6 @@
 #include <vfs.h>
 #include <vnode.h>
 #include <syscall.h>
-#include <limits.h>
 #include <kern/fcntl.h>
 #include <kern/errno.h>
 #include <copyinout.h>
