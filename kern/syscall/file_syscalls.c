@@ -7,6 +7,7 @@
 #include <syscall.h>
 #include <kern/fcntl.h>
 #include <kern/errno.h>
+#include <kern/unistd.h>
 #include <copyinout.h>
 
 /* Create std file (stdin, stdout, stderr) */
@@ -35,21 +36,20 @@ int init_file_array(struct fd* files[])
 {
   int result, i;
 
-  files = kmalloc(sizeof(struct fd*) * OPEN_MAX);
   for (i=0; i<OPEN_MAX; i++) {
     files[i] = NULL;
   }
 
   // STDIN
-  result = init_std_file(files, 0);
+  result = init_std_file(files, STDIN_FILENO);
   if (result) { return result; }
 
   // STDOUT
-  result = init_std_file(files, 1);
+  result = init_std_file(files, STDOUT_FILENO);
   if (result) { return result; }
 
   // STDERR
-  result = init_std_file(files, 2);
+  result = init_std_file(files, STDERR_FILENO);
   if (result) { return result; }
 
   return 0;
@@ -89,9 +89,10 @@ int sys_chdir(userptr_t path)
 
 int sys_open(int* r, userptr_t name, int flags, mode_t mode)
 {
-  int result, i=0;
+  int result, i=3;
   struct vnode* vn;
   struct fd* fd;
+  *r = -1;
 
   // Get first free file descriptor
   while (curthread->files[i] != NULL) { i++; }
@@ -132,12 +133,16 @@ int sys_close(int fd)
 
 int sys_read(int* r, int fd, userptr_t buf, size_t size)
 {
-  int result;
+  int result, flags;
   struct iovec v;
   struct uio u;
 
   // Valid file descriptor
   if (fd<0 || fd>=OPEN_MAX || curthread->files[fd]==NULL) { return EBADF; }
+
+  // Write only
+  flags = curthread->files[fd]->fd_flags;
+  if ((flags&O_ACCMODE) != O_RDWR && (flags&O_ACCMODE) != O_RDONLY) { return EROFS; }
 
   v.iov_ubase = buf;
   v.iov_len = size;
@@ -172,7 +177,7 @@ int sys_write(int* r, int fd, userptr_t buf, size_t size)
 
   // Read only
   flags = curthread->files[fd]->fd_flags;
-  if (flags != O_RDWR && flags != O_WRONLY) { return EROFS; }
+  if ((flags&O_ACCMODE) != O_RDWR && (flags&O_ACCMODE) != O_WRONLY) { return EROFS; }
 
   v.iov_ubase = buf;
   v.iov_len = size;
