@@ -109,6 +109,7 @@ struct thread {
 	 */
   struct fd* files[OPEN_MAX];
   pid_t t_pid;
+  pid_t t_last_child;
 
 	/* add more here as needed */
 };

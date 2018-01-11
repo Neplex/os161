@@ -28,6 +28,7 @@ int init_process(struct thread* t)
 
   // Save process
   process[pid] = proc;
+  // curthread->t_last_child = pid; // Lock problems and this line is due to curthread
 
   // lock_release(process_lock);
 
@@ -66,9 +67,9 @@ int sys_fork(pid_t *r, struct trapframe *tf)
   result = thread_fork(curthread->t_name, NULL, enter_process, tf, curthread->t_pid);
   if (result) { return result; }
 
-  *r = 0; // TODO: Return child PID in parent
+  *r = curthread->t_last_child; // TODO: Return child PID in parent
 
-  return ENOSYS;
+  return 0;
 }
 
 void enter_process(void* tf, unsigned long parent)
@@ -77,6 +78,8 @@ void enter_process(void* tf, unsigned long parent)
 
   // Copy parent
   memcpy(&new_tf, (struct trapframe*)tf, sizeof(struct trapframe));
+  new_tf.tf_v0 = 0;  // Set return value to 0
+  new_tf.tf_epc +=4; // Don't call fork again
 
   process[curthread->t_pid]->p_parent = (pid_t) parent;
 
